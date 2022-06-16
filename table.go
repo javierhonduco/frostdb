@@ -287,6 +287,7 @@ func (t *Table) Iterator(
 	if err != nil {
 		return err
 	}
+	filter = &AlwaysTrueFilter{}
 
 	rowGroups := []dynparquet.DynamicRowGroup{}
 	iteratorFunc := func(rg dynparquet.DynamicRowGroup) bool {
@@ -425,6 +426,7 @@ func (t *Table) ArrowSchema(
 	if err != nil {
 		return nil, err
 	}
+	filter = &AlwaysTrueFilter{}
 
 	rowGroups := []dynparquet.DynamicRowGroup{}
 	err = t.ActiveBlock().RowGroupIterator(ctx, tx, nil, filter,
@@ -748,9 +750,9 @@ func (t *TableBlock) RowGroupIterator(
 		g := i.(*Granule)
 
 		// Check if the entire granule can be skipped due to the filter expr
-		//if !filterGranule(t.logger, filterExpr, g) {
-		//	return true
-		//}
+		if !filterGranule(t.logger, filterExpr, g) {
+			return true
+		}
 
 		g.PartBuffersForTx(tx, func(buf *dynparquet.SerializedBuffer) bool {
 			f := buf.ParquetFile()
